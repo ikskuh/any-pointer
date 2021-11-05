@@ -14,6 +14,7 @@ else
 
 /// A type-checking type-erased pointer. Can contain *any* pointer and can be converted back to the original one.
 pub const SafePointer = struct {
+    /// Pointer to a invalid value.
     pub const null_pointer = SafePointer{ .address = 0, .type_id = @intToEnum(TypeId, 0) };
 
     address: usize,
@@ -46,15 +47,23 @@ pub const SafePointer = struct {
     /// return the pointer as `T`.
     pub fn tryCast(self: SafePointer, comptime T: type) ?T {
         assertPointer(T);
+        if (self.isNull())
+            return null;
         return if (typeId(T) == self.type_id)
             @intToPtr(T, self.address)
         else
             null;
     }
+
+    /// Returns true if the pointer is a null pointer
+    pub fn isNull(self: SafePointer) bool {
+        return self.address == 0;
+    }
 };
 
 /// A type-erased pointer. Can contain *any* pointer and can be converted back to the original one.
 pub const UnsafePointer = enum(usize) {
+    /// Pointer to a invalid value.
     null_pointer,
     _,
 
@@ -64,10 +73,15 @@ pub const UnsafePointer = enum(usize) {
         return @intToEnum(UnsafePointer, @ptrToInt(ptr));
     }
 
-    /// Will return the type-erased pointer as `T`. 
+    /// Will return the type-erased pointer as `T`.
     pub fn cast(self: UnsafePointer, comptime T: type) T {
         assertPointer(T);
         return @intToPtr(T, @enumToInt(self));
+    }
+
+    /// Returns true if the pointer is a null pointer
+    pub fn isNull(self: UnsafePointer) bool {
+        return self == .null_pointer;
     }
 };
 
@@ -181,6 +195,16 @@ test "tryCast optional pointer" {
 
     try std.testing.expectEqual(@as(??*u32, &i), erased.tryCast(?*u32));
     try std.testing.expectEqual(@as(??*f32, null), erased.tryCast(?*f32));
+}
+
+test "unsafe null pointer" {
+    const erased = UnsafePointer.null_pointer;
+    try std.testing.expectEqual(true, erased.isNull());
+}
+
+test "safe null pointer" {
+    const erased = SafePointer.null_pointer;
+    try std.testing.expectEqual(true, erased.isNull());
 }
 
 // test "failing test: type mismatch" {
