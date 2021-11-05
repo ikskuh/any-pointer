@@ -7,7 +7,7 @@ const is_safe_mode = switch (builtin.mode) {
 };
 
 /// A type-erased pointer. Will perform safety checks in safe modes, otherwise will invoke undefined behaviour.
-const AnyPointer = if (is_safe_mode)
+pub const AnyPointer = if (is_safe_mode)
     SafePointer
 else
     UnsafePointer;
