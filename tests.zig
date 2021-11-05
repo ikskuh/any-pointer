@@ -1,5 +1,6 @@
 const std = @import("std");
 const lib = @import("any-pointer.zig");
+const builtin = @import("builtin");
 
 const AnyPointer = lib.AnyPointer;
 const SafePointer = lib.SafePointer;
@@ -75,14 +76,31 @@ test "safe null pointer" {
     try std.testing.expectEqual(true, erased.isNull());
 }
 
-// test "failing test: type mismatch" {
-//     var i: u32 = 0;
+fn failingTest() void {
+    var i: u32 = 0;
 
-//     const erased = SafePointer.make(*u32, &i);
+    const erased = SafePointer.make(*u32, &i);
 
-//     const ptr = erased.cast(*f32);
+    const ptr = erased.cast(*f32);
 
-//     ptr.* = 42;
+    ptr.* = 42;
 
-//     std.debug.assert(i == 42);
-// }
+    std.debug.assert(i == 42);
+}
+
+test "failing test: type mismatch" {
+    if (builtin.os.tag == .windows) {
+        return error.ZigSkipTest;
+    } else {
+        var pid = try std.os.fork();
+        if (pid == 0) {
+            std.os.close(std.os.STDOUT_FILENO);
+            std.os.close(std.os.STDERR_FILENO);
+            failingTest();
+            std.os.exit(0);
+        }
+        const res = std.os.waitpid(pid, 0);
+        try std.testing.expectEqual(pid, res.pid);
+        try std.testing.expect(res.status != 0);
+    }
+}
