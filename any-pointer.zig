@@ -6,17 +6,20 @@ const is_safe_mode = switch (builtin.mode) {
     .ReleaseFast, .ReleaseSmall => false,
 };
 
+/// A type-erased pointer. Will perform safety checks in safe modes, otherwise will invoke undefined behaviour.
 const AnyPointer = if (is_safe_mode)
     SafePointer
 else
     UnsafePointer;
 
+/// A type-checking type-erased pointer. Can contain *any* pointer and can be converted back to the original one.
 pub const SafePointer = struct {
     pub const null_pointer = SafePointer{ .address = 0, .type_id = @intToEnum(TypeId, 0) };
 
     address: usize,
     type_id: TypeId,
 
+    /// Creates a new type-erased pointer.
     pub fn make(comptime T: type, ptr: T) SafePointer {
         assertPointer(T);
         return SafePointer{
@@ -25,6 +28,8 @@ pub const SafePointer = struct {
         };
     }
 
+    /// Casts the type-erased pointer to the pointer type `T`. Will perform a safety check and panic, if the pointer isn't of type `T`.
+    /// Returns `T`.
     pub fn cast(self: SafePointer, comptime T: type) T {
         assertPointer(T);
         if (typeId(T) != self.type_id) {
@@ -36,17 +41,30 @@ pub const SafePointer = struct {
         }
         return @intToPtr(T, self.address);
     }
+
+    /// Will try to cast the type-erased pointer to `T`. Does return `null` if the types don't match, otherwise will
+    /// return the pointer as `T`.
+    pub fn tryCast(self: SafePointer, comptime T: type) ?T {
+        assertPointer(T);
+        return if (typeId(T) == self.type_id)
+            @intToPtr(T, self.address)
+        else
+            null;
+    }
 };
 
+/// A type-erased pointer. Can contain *any* pointer and can be converted back to the original one.
 pub const UnsafePointer = enum(usize) {
     null_pointer,
     _,
 
+    /// Creates a new type-erased pointer.
     pub fn make(comptime T: type, ptr: T) UnsafePointer {
         assertPointer(T);
         return @intToEnum(UnsafePointer, @ptrToInt(ptr));
     }
 
+    /// Will return the type-erased pointer as `T`. 
     pub fn cast(self: UnsafePointer, comptime T: type) T {
         assertPointer(T);
         return @intToPtr(T, @enumToInt(self));
@@ -91,40 +109,78 @@ fn typeId(comptime T: type) TypeId {
     return @intToEnum(TypeId, @ptrToInt(&Tag.name));
 }
 
-test "basic  pointer test" {
+test "basic pointer" {
     var i: u32 = 0;
 
     const erased = AnyPointer.make(*u32, &i);
 
     const ptr = erased.cast(*u32);
 
+    try std.testing.expectEqual(@as(*u32, &i), ptr);
+
     ptr.* = 42;
 
     std.debug.assert(i == 42);
 }
 
-test "basic safe pointer test" {
+test "basic safe pointer" {
     var i: u32 = 0;
 
     const erased = SafePointer.make(*u32, &i);
 
     const ptr = erased.cast(*u32);
 
+    try std.testing.expectEqual(@as(*u32, &i), ptr);
+
     ptr.* = 42;
 
     std.debug.assert(i == 42);
 }
 
-test "basic unsafe pointer test" {
+test "basic unsafe pointer" {
     var i: u32 = 0;
 
     const erased = UnsafePointer.make(*u32, &i);
 
     const ptr = erased.cast(*u32);
 
+    try std.testing.expectEqual(@as(*u32, &i), ptr);
+
     ptr.* = 42;
 
     std.debug.assert(i == 42);
+}
+
+test "safe pointer try cast" {
+    var i: u32 = 0;
+
+    const erased = SafePointer.make(*u32, &i);
+
+    try std.testing.expectEqual(@as(?*u32, &i), erased.tryCast(*u32));
+    try std.testing.expectEqual(@as(?*f32, null), erased.tryCast(*f32));
+}
+
+test "optional pointer" {
+    var i: u32 = 0;
+
+    const erased = AnyPointer.make(?*u32, &i);
+
+    const ptr = erased.cast(?*u32);
+
+    try std.testing.expectEqual(@as(?*u32, &i), ptr);
+
+    ptr.?.* = 42;
+
+    std.debug.assert(i == 42);
+}
+
+test "tryCast optional pointer" {
+    var i: u32 = 0;
+
+    const erased = SafePointer.make(?*u32, &i);
+
+    try std.testing.expectEqual(@as(??*u32, &i), erased.tryCast(?*u32));
+    try std.testing.expectEqual(@as(??*f32, null), erased.tryCast(?*f32));
 }
 
 // test "failing test: type mismatch" {

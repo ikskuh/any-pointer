@@ -23,3 +23,11 @@ In safe modes (`Debug` and `ReleaseSafe`) `cast` will type-check the pointer and
 ## Usage
 
 Just add a package pointing to `any-pointer.zig` to your project.
+
+The package will export three types:
+
+- `SafePointer`, which will provide type checking and panics in safe modes.
+- `UnsafePointer`, which will not provide type checking and will only have the size of a single pointer.
+- `AnyPointer`, which will be `SafePointer` in safe modes and `UnsafePointer` in unsafe modes.
+
+In addition to `cast` and `make`, `SafePointer` also has the function `tryCast` which works like `cast`, but will return an optional.
