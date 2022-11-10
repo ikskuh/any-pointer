@@ -98,7 +98,7 @@ const TypeId = enum(usize) {
 };
 
 fn assertPointer(comptime T: type) void {
-    comptime var ti: std.builtin.TypeInfo = @typeInfo(T);
+    comptime var ti: std.builtin.Type = @typeInfo(T);
     if (ti == .Optional) {
         ti = @typeInfo(ti.Optional.child);
     }
