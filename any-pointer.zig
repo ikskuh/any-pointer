@@ -15,7 +15,7 @@ else
 /// A type-checking type-erased pointer. Can contain *any* pointer and can be converted back to the original one.
 pub const SafePointer = struct {
     /// Pointer to a invalid value.
-    pub const null_pointer = SafePointer{ .address = 0, .type_id = @intToEnum(TypeId, 0) };
+    pub const null_pointer = SafePointer{ .address = 0, .type_id = @as(TypeId, @enumFromInt(0)) };
 
     address: usize,
     type_id: TypeId,
@@ -24,7 +24,7 @@ pub const SafePointer = struct {
     pub fn make(comptime T: type, ptr: T) SafePointer {
         assertPointer(T);
         return SafePointer{
-            .address = @ptrToInt(ptr),
+            .address = @intFromPtr(ptr),
             .type_id = typeId(T),
         };
     }
@@ -40,7 +40,7 @@ pub const SafePointer = struct {
                 std.debug.panic("Type mismatch: Expected {s}, but got <unknown>!", .{@typeName(T)});
             }
         }
-        return @intToPtr(T, self.address);
+        return @as(T, @ptrFromInt(self.address));
     }
 
     /// Will try to cast the type-erased pointer to `T`. Does return `null` if the types don't match, otherwise will
@@ -50,7 +50,7 @@ pub const SafePointer = struct {
         if (self.isNull())
             return null;
         return if (typeId(T) == self.type_id)
-            @intToPtr(T, self.address)
+            @as(T, @ptrFromInt(self.address))
         else
             null;
     }
@@ -70,13 +70,13 @@ pub const UnsafePointer = enum(usize) {
     /// Creates a new type-erased pointer.
     pub fn make(comptime T: type, ptr: T) UnsafePointer {
         assertPointer(T);
-        return @intToEnum(UnsafePointer, @ptrToInt(ptr));
+        return @as(UnsafePointer, @enumFromInt(@intFromPtr(ptr)));
     }
 
     /// Will return the type-erased pointer as `T`.
     pub fn cast(self: UnsafePointer, comptime T: type) T {
         assertPointer(T);
-        return @intToPtr(T, @enumToInt(self));
+        return @as(T, @ptrFromInt(@intFromEnum(self)));
     }
 
     /// Returns true if the pointer is a null pointer
@@ -90,7 +90,7 @@ const TypeId = enum(usize) {
 
     pub fn name(self: TypeId) []const u8 {
         if (builtin.mode == .Debug) {
-            return std.mem.sliceTo(@intToPtr([*:0]const u8, @enumToInt(self)), 0);
+            return std.mem.sliceTo(@as([*:0]const u8, @ptrFromInt(@intFromEnum(self))), 0);
         } else {
             @compileError("Cannot use TypeId.name outside of Debug mode!");
         }
@@ -120,7 +120,7 @@ fn typeId(comptime T: type) TypeId {
         struct {
             var name: u8 = 0;
         };
-    return @intToEnum(TypeId, @ptrToInt(&Tag.name));
+    return @as(TypeId, @enumFromInt(@intFromPtr(&Tag.name)));
 }
 
 test "basic pointer" {
