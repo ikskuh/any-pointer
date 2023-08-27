@@ -1,13 +1,8 @@
 const std = @import("std");
 const builtin = @import("builtin");
 
-const is_safe_mode = switch (builtin.mode) {
-    .Debug, .ReleaseSafe => true,
-    .ReleaseFast, .ReleaseSmall => false,
-};
-
 /// A type-erased pointer. Will perform safety checks in safe modes, otherwise will invoke undefined behaviour.
-pub const AnyPointer = if (is_safe_mode)
+pub const AnyPointer = if (std.debug.runtime_safety)
     SafePointer
 else
     UnsafePointer;
