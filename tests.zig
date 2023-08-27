@@ -76,6 +76,38 @@ test "safe null pointer" {
     try std.testing.expectEqual(true, erased.isNull());
 }
 
+test "unsafe address equality" {
+    var i: u32 = 0;
+    var j: u32 = 0;
+
+    const erased = UnsafePointer.make(*u32, &i);
+    const erased_same = UnsafePointer.make(*u32, &i);
+    const erased_other = UnsafePointer.make(*u32, &j);
+    const erased_null = UnsafePointer.null_pointer;
+
+    try std.testing.expectEqual(true, erased.eql(erased_same));
+    try std.testing.expectEqual(false, erased.eql(erased_other));
+
+    try std.testing.expectEqual(true, erased_null.eql(UnsafePointer.null_pointer));
+    try std.testing.expectEqual(false, erased.eql(UnsafePointer.null_pointer));
+}
+
+test "safe address equality" {
+    var i: u32 = 0;
+    var j: u32 = 0;
+
+    const erased = SafePointer.make(*u32, &i);
+    const erased_same = SafePointer.make(*u32, &i);
+    const erased_other = SafePointer.make(*u32, &j);
+    const erased_null = SafePointer.null_pointer;
+
+    try std.testing.expectEqual(true, erased.eql(erased_same));
+    try std.testing.expectEqual(false, erased.eql(erased_other));
+
+    try std.testing.expectEqual(true, erased_null.eql(SafePointer.null_pointer));
+    try std.testing.expectEqual(false, erased.eql(SafePointer.null_pointer));
+}
+
 fn failingTest() void {
     var i: u32 = 0;
 

@@ -59,6 +59,11 @@ pub const SafePointer = struct {
     pub fn isNull(self: SafePointer) bool {
         return self.address == 0;
     }
+
+    /// Returns true if the address of both pointers is the same.
+    pub fn eql(self: SafePointer, other: SafePointer) bool {
+        return self.address == other.address;
+    }
 };
 
 /// A type-erased pointer. Can contain *any* pointer and can be converted back to the original one.
@@ -82,6 +87,11 @@ pub const UnsafePointer = enum(usize) {
     /// Returns true if the pointer is a null pointer
     pub fn isNull(self: UnsafePointer) bool {
         return self == .null_pointer;
+    }
+
+    /// Returns true if the address of both pointers is the same.
+    pub fn eql(self: UnsafePointer, other: UnsafePointer) bool {
+        return self == other;
     }
 };
 
