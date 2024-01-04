@@ -124,7 +124,7 @@ test "failing test: type mismatch" {
     if (builtin.os.tag == .windows) {
         return error.ZigSkipTest;
     } else {
-        var pid = try std.os.fork();
+        const pid = try std.os.fork();
         if (pid == 0) {
             std.os.close(std.os.STDOUT_FILENO);
             std.os.close(std.os.STDERR_FILENO);
