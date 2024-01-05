@@ -1,8 +1,8 @@
 const std = @import("std");
 
-pub fn build(b: *std.build.Builder) void {
+pub fn build(b: *std.Build) void {
     _ = b.addModule("any-pointer", .{
-        .source_file = .{ .path = "any-pointer.zig" },
+        .root_source_file = .{ .path = "any-pointer.zig" },
     });
 
     const test_step = b.step("test", "Run library tests");
