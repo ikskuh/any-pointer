@@ -118,14 +118,20 @@ fn assertPointer(comptime T: type) void {
 fn typeId(comptime T: type) TypeId {
     const Tag = if (builtin.mode == .Debug)
         struct {
-            const str = @typeName(T);
+            const str = @typeName(T); // must depend on the type somehow!
             var name: [str.len:0]u8 = str.*;
+            inline fn id() TypeId {
+                return @enumFromInt(@intFromPtr(&name));
+            }
         }
     else
         struct {
-            var name: u8 = 0;
+            var name: u8 = @typeName(T)[0]; // must depend on the type somehow!
+            inline fn id() TypeId {
+                return @enumFromInt(@intFromPtr(&name));
+            }
         };
-    return @as(TypeId, @enumFromInt(@intFromPtr(&Tag.name)));
+    return Tag.id();
 }
 
 test "basic pointer" {

@@ -124,14 +124,14 @@ test "failing test: type mismatch" {
     if (builtin.os.tag == .windows) {
         return error.ZigSkipTest;
     } else {
-        const pid = try std.os.fork();
+        const pid = try std.posix.fork();
         if (pid == 0) {
-            std.os.close(std.os.STDOUT_FILENO);
-            std.os.close(std.os.STDERR_FILENO);
+            std.posix.close(std.posix.STDOUT_FILENO);
+            std.posix.close(std.posix.STDERR_FILENO);
             failingTest();
-            std.os.exit(0);
+            std.process.exit(0);
         }
-        const res = std.os.waitpid(pid, 0);
+        const res = std.posix.waitpid(pid, 0);
         try std.testing.expectEqual(pid, res.pid);
         try std.testing.expect(res.status != 0);
     }

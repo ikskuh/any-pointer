@@ -14,7 +14,7 @@ pub fn build(b: *std.Build) void {
             .optimize = optimize,
         });
 
-        test_step.dependOn(&main_tests.step);
+        test_step.dependOn(&b.addRunArtifact(main_tests).step);
     }
 
     b.getInstallStep().dependOn(test_step);
