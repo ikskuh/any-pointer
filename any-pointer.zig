@@ -104,12 +104,12 @@ const TypeId = enum(usize) {
 
 fn assertPointer(comptime T: type) void {
     comptime var ti: std.builtin.Type = @typeInfo(T);
-    if (ti == .Optional) {
-        ti = @typeInfo(ti.Optional.child);
+    if (ti == .optional) {
+        ti = @typeInfo(ti.optional.child);
     }
-    if (ti != .Pointer)
+    if (ti != .pointer)
         @compileError("any-pointer only works with (optional) pointers to one or many.");
-    switch (ti.Pointer.size) {
+    switch (ti.pointer.size) {
         .One, .Many, .C => {},
         else => @compileError("any-pointer only works with (optional) pointers to one or many."),
     }
