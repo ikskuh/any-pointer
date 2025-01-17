@@ -110,7 +110,7 @@ fn assertPointer(comptime T: type) void {
     if (ti != .pointer)
         @compileError("any-pointer only works with (optional) pointers to one or many.");
     switch (ti.pointer.size) {
-        .One, .Many, .C => {},
+        .one, .many, .c => {},
         else => @compileError("any-pointer only works with (optional) pointers to one or many."),
     }
 }
