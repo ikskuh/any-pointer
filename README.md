@@ -15,7 +15,6 @@ const ptr = erased.cast(*u32);
 
 ptr.* = 42;
 
-std.debug.assert(!ptr.isNull());
 std.debug.assert(i == 42);
 ```
 
