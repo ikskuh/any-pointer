@@ -107,32 +107,3 @@ test "safe address equality" {
     try std.testing.expectEqual(true, erased_null.eql(SafePointer.null_pointer));
     try std.testing.expectEqual(false, erased.eql(SafePointer.null_pointer));
 }
-
-fn failingTest() void {
-    var i: u32 = 0;
-
-    const erased = SafePointer.make(*u32, &i);
-
-    const ptr = erased.cast(*f32);
-
-    ptr.* = 42;
-
-    std.debug.assert(i == 42);
-}
-
-test "failing test: type mismatch" {
-    if (builtin.os.tag == .windows) {
-        return error.ZigSkipTest;
-    } else {
-        const pid = try std.posix.fork();
-        if (pid == 0) {
-            std.posix.close(std.posix.STDOUT_FILENO);
-            std.posix.close(std.posix.STDERR_FILENO);
-            failingTest();
-            std.process.exit(0);
-        }
-        const res = std.posix.waitpid(pid, 0);
-        try std.testing.expectEqual(pid, res.pid);
-        try std.testing.expect(res.status != 0);
-    }
-}

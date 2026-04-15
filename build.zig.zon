@@ -1,0 +1,7 @@
+.{
+    .name = .any_pointer,
+    .fingerprint = 0x4a9defe54381ec09,
+    .minimum_zig_version = "0.15.2",
+    .version = "0.1.0",
+    .paths = .{""},
+}
